@@ -330,6 +330,10 @@ DELETE
 ## ✅ Tests
 <img width="1853" height="466" alt="image" src="https://github.com/user-attachments/assets/16a306b5-240e-4a46-9668-3eed4caa9e02" />
 
+---
+## JaCoCo Coverage
+<img width="1910" height="482" alt="image" src="https://github.com/user-attachments/assets/596f20d4-087c-44da-b802-3e28473eea02" />
+
 
 
 ---
