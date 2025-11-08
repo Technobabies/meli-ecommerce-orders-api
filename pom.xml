@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.6</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.meli</groupId>
 	<artifactId>meli-ecommerce-orders-api</artifactId>
@@ -76,6 +76,45 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+
+                            <includes>
+                                <include>com/meli/meli_ecommerce_orders_api/service/*</include>
+                                <include>com/meli/meli_ecommerce_orders_api/controller/*</include>
+                            </includes>
+
+
+                            <excludes>
+                                <exclude>com/meli/meli_ecommerce_orders_api/model/*</exclude>
+                                <exclude>com/meli/meli_ecommerce_orders_api/dto/*</exclude>
+                                <exclude>com/meli/meli_ecommerce_orders_api/repository/*</exclude>
+                                <exclude>com/meli/meli_ecommerce_orders_api/exceptions/*</exclude>
+                                <exclude>**/MeliEcommerceOrdersApiApplication.class</exclude>
+                                <exclude>**/configuration/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 	</build>
 
