@@ -2,10 +2,11 @@ package com.meli.meli_ecommerce_orders_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.meli_ecommerce_orders_api.dto.CreateOrderRequest;
+import com.meli.meli_ecommerce_orders_api.dto.OrderLineItemRequest;
 import com.meli.meli_ecommerce_orders_api.exceptions.OrderNotFoundException;
 import com.meli.meli_ecommerce_orders_api.model.Order;
 import com.meli.meli_ecommerce_orders_api.service.OrderService;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,29 +16,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
 
 /**
  * Integration test for the OrderController web layer.
- * This test loads ONLY the web layer and mocks the service layer.
+ * Loads only the web layer and mocks the service layer.
  */
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
 
-    /**
-     * This static nested class provides the mock bean definition
-     * to the test's ApplicationContext. This is the modern
-     * replacement for the deprecated @MockBean.
-     */
     @TestConfiguration
     static class ControllerTestConfig {
         @Bean
@@ -46,15 +43,10 @@ class OrderControllerTest {
         }
     }
 
-    // --- Injected Fields ---
-
     private final MockMvc mockMvc;
-    private final ObjectMapper objectMapper; // For converting objects to JSON
-    private final OrderService orderService; // This is the MOCK from our TestConfig
+    private final ObjectMapper objectMapper;
+    private final OrderService orderService;
 
-    /**
-     * Use constructor injection to get the beans from the test context.
-     */
     @Autowired
     OrderControllerTest(MockMvc mockMvc, ObjectMapper objectMapper, OrderService orderService) {
         this.mockMvc = mockMvc;
@@ -62,106 +54,111 @@ class OrderControllerTest {
         this.orderService = orderService;
     }
 
-    @Test
-    void testCreateOrder_Failure_InvalidInput() throws Exception {
-        // 1. Arrange
-        CreateOrderRequest badRequest = new CreateOrderRequest(); // An empty/invalid request
-        // (This test assumes your CreateOrderRequest DTO has validation
-        // annotations like @NotNull and your controller uses @Valid)
+    private CreateOrderRequest validRequest;
 
-        // 2. Act & 3. Assert
+    @BeforeEach
+    void setUp() {
+        OrderLineItemRequest item = new OrderLineItemRequest();
+        item.setProductId(UUID.randomUUID());
+        item.setProductName("Test Product");
+        item.setQuantity(2);
+        item.setPricePerUnit(BigDecimal.valueOf(10.0));
+
+        validRequest = new CreateOrderRequest();
+        validRequest.setCreatedBy(UUID.randomUUID());
+        validRequest.setItems(List.of(item));
+    }
+
+    @Test
+    void testCreateOrder_Success() throws Exception {
+        Order createdOrder = new Order();
+        createdOrder.setId(UUID.randomUUID());
+        when(orderService.createOrder(any(CreateOrderRequest.class))).thenReturn(createdOrder);
+
         mockMvc.perform(post("/api/v1/orders")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(badRequest)))
-                .andExpect(status().isBadRequest()); // Check for HTTP 400
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists());
+
+        verify(orderService, times(1)).createOrder(any(CreateOrderRequest.class));
+    }
+
+    @Test
+    void testCreateOrder_Failure_InvalidInput() throws Exception {
+        CreateOrderRequest invalid = new CreateOrderRequest(); // Missing required fields
+        mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalid)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     void testGetAllOrders_Success() throws Exception {
-        // 1. Arrange
-        Order order1 = new Order();
-        order1.setId(UUID.randomUUID());
-        List<Order> orders = List.of(order1);
+        Order order = new Order();
+        order.setId(UUID.randomUUID());
+        when(orderService.getAllActiveOrders()).thenReturn(List.of(order));
 
-        // Mock the service call
-        when(orderService.getAllActiveOrders()).thenReturn(orders);
-
-        // 2. Act & 3. Assert
         mockMvc.perform(get("/api/v1/orders"))
-                .andExpect(status().isOk()) // Check for HTTP 200
-                .andExpect(jsonPath("$", hasSize(1))) // Check that the JSON response is an array of size 1
-                .andExpect(jsonPath("$[0].id", is(order1.getId().toString())));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(order.getId().toString())));
     }
 
     @Test
-    void testGetAllOrders_Success_EmptyList() throws Exception {
-        // 1. Arrange
+    void testGetAllOrders_EmptyList() throws Exception {
         when(orderService.getAllActiveOrders()).thenReturn(Collections.emptyList());
 
-        // 2. Act & 3. Assert
         mockMvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0))); // Check that the JSON response is an empty array
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test
     void testGetOrderById_Success() throws Exception {
-        // 1. Arrange
-        UUID orderId = UUID.randomUUID();
+        UUID id = UUID.randomUUID();
         Order order = new Order();
-        order.setId(orderId);
+        order.setId(id);
+        when(orderService.getOrderById(id)).thenReturn(order);
 
-        when(orderService.getOrderById(orderId)).thenReturn(order);
-
-        // 2. Act & 3. Assert
-        mockMvc.perform(get("/api/v1/orders/{id}", orderId))
+        mockMvc.perform(get("/api/v1/orders/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(orderId.toString())));
+                .andExpect(jsonPath("$.id", is(id.toString())));
     }
 
     @Test
-    void testGetOrderById_Failure_NotFound() throws Exception {
-        // 1. Arrange
-        UUID nonExistentId = UUID.randomUUID();
+    void testGetOrderById_NotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(orderService.getOrderById(id)).thenThrow(new OrderNotFoundException("Not found"));
 
-        // Mock the service to throw an exception
-        // ** IMPORTANT: This requires a @ControllerAdvice to work (see explanation)
-        when(orderService.getOrderById(nonExistentId))
-                .thenThrow(new OrderNotFoundException("Order not found"));
-
-        // 2. Act & 3. Assert
-        mockMvc.perform(get("/api/v1/orders/{id}", nonExistentId))
-                .andExpect(status().isNotFound()); // Check for HTTP 404
+        mockMvc.perform(get("/api/v1/orders/{id}", id))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     void testDeleteOrder_Success() throws Exception {
-        // 1. Arrange
-        UUID orderId = UUID.randomUUID();
+        UUID id = UUID.randomUUID();
 
-        // For void methods, use doNothing()
-        when(orderService.softDeleteOrder(orderId)).thenReturn(new Order());
+        // Mock the service call – assume it's a void method
+        Mockito.doAnswer(invocation -> null)
+                .when(orderService).softDeleteOrder(id);
 
-        // 2. Act & 3. Assert
-        mockMvc.perform(delete("/api/v1/orders/{id}", orderId))
-                .andExpect(status().isNoContent()); // Check for HTTP 204
+        mockMvc.perform(delete("/api/v1/orders/{id}", id))
+                .andExpect(status().isNoContent());
 
-        // 3. (Optional) Verify the service method was called
-        verify(orderService, times(1)).softDeleteOrder(orderId);
+        verify(orderService, times(1)).softDeleteOrder(id);
     }
 
     @Test
-    void testDeleteOrder_Failure_NotFound() throws Exception {
-        // 1. Arrange
-        UUID nonExistentId = UUID.randomUUID();
+    void testDeleteOrder_NotFound() throws Exception {
+        UUID id = UUID.randomUUID();
 
-        // Mock the service to throw an exception
-        // ** IMPORTANT: This requires a @ControllerAdvice to work (see explanation)
-        doThrow(new OrderNotFoundException("Order not found")) // Use your actual OrderNotFoundException
-                .when(orderService).softDeleteOrder(nonExistentId);
+        Mockito.doThrow(new OrderNotFoundException("Not found"))
+                .when(orderService).softDeleteOrder(id);
 
-        // 2. Act & 3. Assert
-        mockMvc.perform(delete("/api/v1/orders/{id}", nonExistentId))
-                .andExpect(status().isNotFound()); // Check for HTTP 404
+        mockMvc.perform(delete("/api/v1/orders/{id}", id))
+                .andExpect(status().isNotFound());
+
+        verify(orderService, times(1)).softDeleteOrder(id);
     }
 }
