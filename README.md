@@ -330,9 +330,155 @@ DELETE
 ## ✅ Tests
 <img width="1853" height="466" alt="image" src="https://github.com/user-attachments/assets/16a306b5-240e-4a46-9668-3eed4caa9e02" />
 
-
+---
+## JaCoCo Coverage
+<img width="1910" height="482" alt="image" src="https://github.com/user-attachments/assets/596f20d4-087c-44da-b802-3e28473eea02" />
 
 ---
 
 POSTMAN JSON in
 https://github.com/JaredTrOr/meli-ecommerce-orders-api/blob/master/MeliECommerce.postman_collection.json
+
+---
+
+# 🧾 Order Audit Logging & Test Coverage Documentation
+
+
+### 1. Purpose
+
+The audit system ensures that every significant change to an order (creation, modification, or deletion) is recorded in a separate table: `order_audit_logs`.  
+This allows you to trace:
+
+- **Who** made a change (`performed_by`)
+- **When** it happened (`performed_at`)
+- **What** changed (via JSON snapshots of old/new data)
+
+---
+
+### 2. Audit Table Definition
+
+```sql
+CREATE TABLE IF NOT EXISTS public.order_audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    order_id UUID NOT NULL,
+    action_type TEXT NOT NULL CHECK (action_type IN ('INSERT', 'UPDATE', 'DELETE')),
+    old_data JSONB,
+    new_data JSONB,
+    performed_by UUID,
+    performed_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Columns explained:**
+
+| Column         | Type       | Description |
+|----------------|------------|-------------|
+| `id`           | BIGSERIAL  | Unique audit record ID |
+| `order_id`     | UUID       | References the order affected |
+| `action_type`  | TEXT       | Type of change (`INSERT`, `UPDATE`, `DELETE`) |
+| `old_data`     | JSONB      | Snapshot before change |
+| `new_data`     | JSONB      | Snapshot after change |
+| `performed_by` | UUID       | The user who performed the action |
+| `performed_at` | TIMESTAMP  | Timestamp of when the change occurred |
+
+---
+
+### 3. Stored Procedure & Trigger Setup
+
+The following **single stored procedure** automatically logs all changes in the `orders` table, regardless of whether it’s an insert, update, or delete.
+
+```sql
+-- Create function (stored procedure)
+CREATE OR REPLACE FUNCTION public.fn_log_order_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        INSERT INTO public.order_audit_logs(order_id, action_type, new_data, performed_by)
+        VALUES (NEW.id, 'INSERT', to_jsonb(NEW), NEW.created_by);
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO public.order_audit_logs(order_id, action_type, old_data, new_data, performed_by)
+        VALUES (NEW.id, 'UPDATE', to_jsonb(OLD), to_jsonb(NEW), NEW.created_by);
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO public.order_audit_logs(order_id, action_type, old_data, performed_by)
+        VALUES (OLD.id, 'DELETE', to_jsonb(OLD), OLD.created_by);
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the single trigger that activates the function
+CREATE TRIGGER trg_orders_audit
+AFTER INSERT OR UPDATE OR DELETE ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_log_order_changes();
+```
+
+---
+
+### 4. How It Works
+
+| Action | Trigger Fires | Audit Log Entry |
+|--------|----------------|----------------|
+| `INSERT` | When a new order is created | Saves the full record in `new_data` |
+| `UPDATE` | When an existing order is updated | Saves both `old_data` and `new_data` |
+| `DELETE` | When an order is soft/hard deleted | Saves the full record in `old_data` |
+
+🧩 The `performed_by` field uses the `created_by` value from your `orders` table.  
+This means the system automatically knows **which user** made the change based on who created or modified the record in your API.
+
+---
+
+## 🧪 JaCoCo Test Coverage
+
+### Purpose
+
+JaCoCo is used to measure and visualize **test coverage** across your codebase, ensuring that core business logic and API endpoints are properly tested.
+
+### Configuration
+
+The plugin is declared in your `pom.xml`:
+
+```xml
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.10</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+### Generate Report
+
+Run the following command after executing your tests:
+
+```bash
+mvn clean test
+```
+
+Then generate the coverage report:
+
+```bash
+mvn jacoco:report
+```
+
+📍 The coverage report will be available at:
+```
+target/site/jacoco/index.html
+```
