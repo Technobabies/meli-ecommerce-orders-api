@@ -1,5 +1,6 @@
 package com.meli.meli_ecommerce_orders_api.controller;
 
+import com.meli.meli_ecommerce_orders_api.dto.ApiResponse;
 import com.meli.meli_ecommerce_orders_api.dto.CreateOrderRequest;
 import com.meli.meli_ecommerce_orders_api.model.Order;
 import com.meli.meli_ecommerce_orders_api.service.OrderService;
@@ -37,9 +38,11 @@ public class OrderController {
      * @return the response entity
      */
     @PostMapping
-    public ResponseEntity<Order> createOrder(@Valid @RequestBody CreateOrderRequest request) {
+    public ResponseEntity<ApiResponse<Order>> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         Order createdOrder = orderService.createOrder(request);
-        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Order created successfully", createdOrder));
     }
 
     /**
@@ -48,9 +51,9 @@ public class OrderController {
      * @return the all orders
      */
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<ApiResponse<List<Order>>> getAllOrders() {
         List<Order> orders = orderService.getAllActiveOrders();
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(ApiResponse.success("Orders fetched successfully", orders));
     }
 
     /**
@@ -60,9 +63,9 @@ public class OrderController {
      * @return the order by id
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Order>> getOrderById(@PathVariable UUID id) {
         Order order = orderService.getOrderById(id);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(ApiResponse.success("Order found", order));
     }
 
     /**
@@ -72,8 +75,8 @@ public class OrderController {
      * @return the response entity
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable UUID id) {
         orderService.softDeleteOrder(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("Order deleted successfully", null));
     }
 }
