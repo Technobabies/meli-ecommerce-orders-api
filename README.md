@@ -482,3 +482,10 @@ mvn jacoco:report
 ```
 target/site/jacoco/index.html
 ```
+
+### Architecture Diagram
+<img width="1708" height="774" alt="Screenshot 2025-11-13 100250" src="https://github.com/user-attachments/assets/372137f3-2a6e-4345-a4f1-8890fe44daef" />
+
+### ER Diagram
+<img width="919" height="740" alt="Screenshot 2025-11-13 103142" src="https://github.com/user-attachments/assets/4fe62624-cde2-473e-ad9b-a2295a948540" />
+
