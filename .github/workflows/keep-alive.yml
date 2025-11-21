@@ -19,7 +19,7 @@ jobs:
           - name: Production
             url: https://meli-ecommerce-orders-api.onrender.com/api/v1/health
           - name: Staging
-            url: https://meli-orders-api-staging.onrender.com/api/v1/health
+            url: https://meli-ecommerce-staging.onrender.com/api/v1/health
     
     steps:
       - name: Health Check - ${{ matrix.environment.name }}
