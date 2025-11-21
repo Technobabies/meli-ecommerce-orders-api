@@ -1,0 +1,155 @@
+# ============================================
+# Render Blueprint for MELI E-Commerce Orders API
+# ============================================
+# This file defines infrastructure as code for Render.com
+# It allows you to deploy multiple environments from different branches
+# ============================================
+
+services:
+  # ==========================================
+  # PRODUCTION ENVIRONMENT (main branch)
+  # ==========================================
+  - type: web
+    name: meli-orders-api-prod
+    env: docker
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free  # Change to 'starter' or higher for production
+    region: oregon  # Choose: oregon, ohio, frankfurt, singapore
+    
+    # Health check endpoint
+    healthCheckPath: /api/v1/
+    
+    # Environment variables for PRODUCTION
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      
+      - key: SERVER_PORT
+        value: 8080
+      
+      # Database credentials (set these as secret in Render dashboard)
+      - key: PROD_DB_URL
+        sync: false  # Must be set manually in Render dashboard
+      
+      - key: PROD_DB_USER
+        sync: false  # Must be set manually in Render dashboard
+      
+      - key: PROD_DB_PASSWORD
+        sync: false  # Must be set manually in Render dashboard
+      
+      - key: JAVA_OPTS
+        value: -Xmx512m -Xms256m
+    
+    # Auto-deploy on push to main
+    autoDeploy: true
+
+  # ==========================================
+  # STAGING ENVIRONMENT (staging branch)
+  # ==========================================
+  - type: web
+    name: meli-orders-api-staging
+    env: docker
+    branch: staging
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    
+    healthCheckPath: /api/v1/
+    
+    # Environment variables for STAGING
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod  # Use prod profile with staging database
+      
+      - key: SERVER_PORT
+        value: 8080
+      
+      # Staging database credentials
+      - key: PROD_DB_URL
+        sync: false  # Use staging database URL
+      
+      - key: PROD_DB_USER
+        sync: false
+      
+      - key: PROD_DB_PASSWORD
+        sync: false
+      
+      - key: JAVA_OPTS
+        value: -Xmx512m -Xms256m
+    
+    autoDeploy: true
+
+  # ==========================================
+  # DEVELOPMENT ENVIRONMENT (dev branch)
+  # ==========================================
+  # Uncomment if you want a deployed dev environment
+  # Otherwise, run dev locally with docker-compose
+  #
+  # - type: web
+  #   name: meli-orders-api-dev
+  #   env: docker
+  #   branch: dev
+  #   dockerfilePath: ./Dockerfile
+  #   dockerContext: .
+  #   plan: free
+  #   region: oregon
+  #   
+  #   healthCheckPath: /api/v1/
+  #   
+  #   envVars:
+  #     - key: SPRING_PROFILES_ACTIVE
+  #       value: dev  # Uses H2 in-memory database
+  #     
+  #     - key: SERVER_PORT
+  #       value: 8080
+  #     
+  #     - key: JAVA_OPTS
+  #       value: -Xmx256m -Xms128m
+  #   
+  #   autoDeploy: true
+
+# ============================================
+# DEPLOYMENT NOTES
+# ============================================
+# 
+# How to use this file:
+# 1. Push this file to your repository
+# 2. Go to Render dashboard → Blueprint → New Blueprint Instance
+# 3. Connect your GitHub repository
+# 4. Render will automatically create all services defined here
+# 5. Set secret environment variables in Render dashboard for each service
+#
+# Free Tier Strategy (3 environments):
+# Option 1 - Single Account (Recommended):
+#   - Deploy all 3 environments in one account
+#   - Use free tier for staging and dev
+#   - Upgrade only production to paid tier
+#
+# Option 2 - Multiple Accounts:
+#   - Account 1 (You): Production (main branch)
+#   - Account 2 (Team member): Staging (staging branch)
+#   - Account 3 (Team member): Dev (dev branch)
+#   - Each account gets 750 free hours/month
+#
+# Database Strategy (Supabase):
+#   - Option 1: One Supabase project with multiple schemas
+#     * Schema 'public' for production
+#     * Schema 'staging' for staging
+#     * Schema 'dev' for development
+#   
+#   - Option 2: Separate Supabase projects (Free tier: 2 projects)
+#     * Project 1: Production
+#     * Project 2: Staging + Dev
+#   
+#   - Option 3: Three team member accounts
+#     * Each gets 2 free Supabase projects
+#
+# Branch Protection (recommended):
+#   - Protect 'main' branch: require pull request reviews
+#   - Protect 'staging' branch: require pull request reviews
+#   - 'dev' and 'feature/*' branches: direct pushes OK
+# ============================================
+
