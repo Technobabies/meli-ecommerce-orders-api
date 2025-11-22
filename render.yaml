@@ -62,20 +62,20 @@ services:
     # Environment variables for STAGING
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: prod  # Use prod profile with staging database
+        value: staging  # Use staging profile with isolated staging database
       
       - key: SERVER_PORT
         value: 8080
       
-      # Staging database credentials
-      - key: PROD_DB_URL
-        sync: false  # Use staging database URL
+      # Staging database credentials (separate from production)
+      - key: STAGING_DB_URL
+        sync: false  # Must be set manually in Render dashboard
       
-      - key: PROD_DB_USER
-        sync: false
+      - key: STAGING_DB_USER
+        sync: false  # Must be set manually in Render dashboard
       
-      - key: PROD_DB_PASSWORD
-        sync: false
+      - key: STAGING_DB_PASSWORD
+        sync: false  # Must be set manually in Render dashboard
       
       - key: JAVA_OPTS
         value: -Xmx512m -Xms256m
