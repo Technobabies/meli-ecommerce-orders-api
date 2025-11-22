@@ -32,6 +32,7 @@ Together, these establish a solid foundation for MELI's future e-commerce operat
   - `prod`: PostgreSQL database via environment variables.  
 - **Interactive API Documentation:** Swagger UI for clear, testable endpoints.  
 - **Centralized Exception Handling:** Consistent JSON error responses (e.g., *Order Not Found*).
+- **Keep-Alive System:** Automatic service health monitoring to prevent free-tier deployments from sleeping. See [KEEP_ALIVE_SETUP.md](KEEP_ALIVE_SETUP.md) for details.
 
 ---
 

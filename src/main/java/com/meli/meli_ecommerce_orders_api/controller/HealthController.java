@@ -104,16 +104,28 @@ public class HealthController {
     }
 
     /**
+     * Ping response entity.
+     * Simple ping endpoint for keep-alive checks from other services.
+     * Returns a minimal response to reduce overhead.
+     *
+     * @return the response entity
+     */
+    @GetMapping("/ping")
+    public ResponseEntity<ApiResponse<String>> ping() {
+        return ResponseEntity.ok(ApiResponse.success("pong", "Service is alive"));
+    }
+
+    /**
+     * Gets active profile.
      * Gets the active Spring profile(s).
      *
-     * @return Active profile name or "unknown" if not set
+     * @return the active profile
      */
     private String getActiveProfile() {
         String[] activeProfiles = environment.getActiveProfiles();
         if (activeProfiles.length > 0) {
             return String.join(",", activeProfiles);
         }
-        // If no active profile, check default
         String defaultProfile = environment.getProperty("spring.profiles.active", "dev");
         return defaultProfile;
     }
