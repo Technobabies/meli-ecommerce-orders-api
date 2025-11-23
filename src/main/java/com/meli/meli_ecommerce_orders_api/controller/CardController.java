@@ -4,6 +4,9 @@ import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
 import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
 import com.meli.meli_ecommerce_orders_api.service.CardService;
 import com.meli.meli_ecommerce_orders_api.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/cards")
+@Tag(name = "Cards Management", description = "APIs for creating, reading, updating, and deleting cards")
 public class CardController {
 
     // Injected service responsible for card-related business logic
@@ -32,6 +36,11 @@ public class CardController {
      * @return A ResponseEntity containing an ApiResponse with a list of CardResponse objects.
      */
     @GetMapping("/{userId}")
+    @Operation(summary = "List of cards by user", description = "Obtain the list of cards associated to a user by its id.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of card retrieve successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     public ResponseEntity<ApiResponse<List<CardResponse>>> getCards(@PathVariable UUID userId) {
         List<CardResponse> cards = cardService.getCardsByUserId(userId);
         return ResponseEntity.ok(ApiResponse.success("Cards fetched successfully", cards));
@@ -45,6 +54,11 @@ public class CardController {
      * @return A ResponseEntity containing an ApiResponse with the created CardResponse.
      */
     @PostMapping("/{userId}")
+    @Operation(summary = "Create a card for a user", description = "Create a cards to be associated to a user by its id.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Card created successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     public ResponseEntity<ApiResponse<CardResponse>> createCard(
             @PathVariable UUID userId,
             @Valid @RequestBody CreateCardRequest request) {
@@ -63,6 +77,11 @@ public class CardController {
      * @return A ResponseEntity containing a success message with no data.
      */
     @DeleteMapping("/{cardId}")
+    @Operation(summary = "Delete a card of a user", description = "Soft delete a cards associated to a user by cardId.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Card deleted successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     public ResponseEntity<ApiResponse<Void>> deleteCard(@PathVariable UUID cardId) {
         cardService.deleteCard(cardId);
         return ResponseEntity.ok(ApiResponse.success("Card deleted successfully", null));
