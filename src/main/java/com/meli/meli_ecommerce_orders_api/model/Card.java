@@ -68,8 +68,6 @@ public class Card {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    private LocalDateTime deletedAt;
-
     /**
      * Default constructor required by JPA.
      */

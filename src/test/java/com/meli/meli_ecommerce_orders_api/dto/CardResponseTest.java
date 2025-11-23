@@ -1,6 +1,6 @@
-package com.meli.meli_ecommerce_orders_api.cards.dto;
+package com.meli.meli_ecommerce_orders_api.dto;
 
-import com.meli.meli_ecommerce_orders_api.cards.model.Card;
+import com.meli.meli_ecommerce_orders_api.model.Card;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
