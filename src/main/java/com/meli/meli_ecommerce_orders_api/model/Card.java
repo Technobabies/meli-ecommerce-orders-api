@@ -11,23 +11,25 @@ public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "user_id")
     private UUID userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "cardholder_name")
     private String cardholderName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "card_number")
     private String cardNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "expiration_date")
     private LocalDate expirationDate;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     public Card() {}
