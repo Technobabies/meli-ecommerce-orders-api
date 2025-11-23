@@ -1,4 +1,4 @@
-package com.meli.meli_ecommerce_orders_api.cards.dto;
+package com.meli.meli_ecommerce_orders_api.dto;
 
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;

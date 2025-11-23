@@ -1,4 +1,4 @@
-package com.meli.meli_ecommerce_orders_api.cards.model;
+package com.meli.meli_ecommerce_orders_api.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;

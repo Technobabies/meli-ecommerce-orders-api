@@ -1,10 +1,11 @@
-package com.meli.meli_ecommerce_orders_api.cards.controller;
+package com.meli.meli_ecommerce_orders_api.controller;
 
-import com.meli.meli_ecommerce_orders_api.cards.dto.CardResponse;
-import com.meli.meli_ecommerce_orders_api.cards.dto.CreateCardRequest;
-import com.meli.meli_ecommerce_orders_api.cards.service.CardService;
+import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
+import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
+import com.meli.meli_ecommerce_orders_api.service.CardService;
 import com.meli.meli_ecommerce_orders_api.dto.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class CardController {
 
     private final CardService cardService;
 
+    @Autowired
     public CardController(CardService cardService) {
         this.cardService = cardService;
     }
