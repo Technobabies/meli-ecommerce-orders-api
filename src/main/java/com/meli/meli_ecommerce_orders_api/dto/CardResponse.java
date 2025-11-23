@@ -1,6 +1,6 @@
-package com.meli.meli_ecommerce_orders_api.cards.dto;
+package com.meli.meli_ecommerce_orders_api.dto;
 
-import com.meli.meli_ecommerce_orders_api.cards.model.Card;
+import com.meli.meli_ecommerce_orders_api.model.Card;
 import java.time.LocalDate;
 import java.util.UUID;
 

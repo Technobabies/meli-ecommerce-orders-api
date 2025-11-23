@@ -1,4 +1,4 @@
-package com.meli.meli_ecommerce_orders_api.cards.exceptions;
+package com.meli.meli_ecommerce_orders_api.exceptions;
 
 import com.meli.meli_ecommerce_orders_api.dto.ApiResponse;
 import org.springframework.http.HttpStatus;

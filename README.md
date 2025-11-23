@@ -110,6 +110,7 @@ The configuration for each profile is located in `src/main/resources/`:
 * `application.properties`: The base configuration, which sets `dev` as the default.
 * `application-dev.properties`: For local development.
 * `application-test.properties`: For running automated tests.
+* `application-staging.properties`: For staging/pre-production environment.
 * `application-prod.properties`: For the live production deployment.
 
 ---
@@ -139,7 +140,23 @@ This profile is used *only* when running automated tests (like JUnit tests).
     * Uses a different database name to avoid all conflicts with your `dev` database.
     * Uses `spring.jpa.hibernate.ddl-auto=create-drop`, which builds the database from scratch when tests start and completely deletes it when they finish. This ensures every test run is clean and repeatable.
 
-### 3. Production (`prod`)
+### 3. Staging (`staging`)
+
+This is the profile for the **staging/pre-production environment** used for testing before production deployment.
+
+* **File:** `application-staging.properties`
+* **Purpose:** For testing changes in a production-like environment before deploying to production.
+* **Database:** Connects to a **separate Supabase (PostgreSQL)** staging database. **IMPORTANT:** This must be a different database from production to ensure complete isolation.
+* **Activation:** This profile **must be explicitly set** on the server (e.g., `SPRING_PROFILES_ACTIVE=staging`).
+* **Configuration:** This file contains **no secrets**. All sensitive values are loaded from environment variables:
+  * `${STAGING_DB_URL}` - Staging database connection URL
+  * `${STAGING_DB_USER}` - Staging database username
+  * `${STAGING_DB_PASSWORD}` - Staging database password
+* **Features:**
+  * Uses `spring.jpa.hibernate.ddl-auto=validate` to ensure schema matches code without auto-updating.
+  * Completely isolated from production database to prevent data contamination.
+
+### 4. Production (`prod`)
 
 This is the profile for the **live, public-facing application**.
 

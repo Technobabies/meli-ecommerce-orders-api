@@ -1,6 +1,6 @@
-package com.meli.meli_ecommerce_orders_api.cards.repository;
+package com.meli.meli_ecommerce_orders_api.repository;
 
-import com.meli.meli_ecommerce_orders_api.cards.model.Card;
+import com.meli.meli_ecommerce_orders_api.model.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

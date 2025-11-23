@@ -1,4 +1,4 @@
-package com.meli.meli_ecommerce_orders_api.cards.model;
+package com.meli.meli_ecommerce_orders_api.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -23,19 +23,20 @@ public class Card {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     /**
      * Identifier of the user who owns this card.
      * Stored as a UUID to match the users table.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, name = "user_id")
     private UUID userId;
 
     /**
      * Name of the cardholder as printed on the card.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, name = "cardholder_name")
     private String cardholderName;
 
     /**
@@ -43,20 +44,20 @@ public class Card {
      * WARNING: This value is sensitive and should never be exposed
      * directly in API responses. Masked versions should be used instead.
      */
-    @Column(nullable = false)
+    @Column(nullable = false, name = "card_number")
     private String cardNumber;
 
     /**
      * Expiration date of the card (month/year).
      */
-    @Column(nullable = false)
+    @Column(nullable = false, name = "expiration_date")
     private LocalDate expirationDate;
 
     /**
      * Timestamp indicating when the card was created.
      * Automatically set at creation and cannot be updated.
      */
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     /**
@@ -64,6 +65,9 @@ public class Card {
      * If not null, it indicates when the card was logically deleted.
      * The record remains in the database for auditing or recovery.
      */
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     private LocalDateTime deletedAt;
 
     /**

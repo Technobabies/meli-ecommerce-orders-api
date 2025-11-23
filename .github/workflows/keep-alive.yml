@@ -2,15 +2,14 @@ name: Keep Alive - Health Check
 
 on:
   schedule:
-    # Run every 3 minutes
     - cron: '*/3 * * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   health-check:
     name: Health Check - Production & Staging
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     
     strategy:
       fail-fast: false
@@ -24,30 +23,30 @@ jobs:
     steps:
       - name: Health Check - ${{ matrix.environment.name }}
         id: health_check
-        run: |
-          echo "Checking ${{ matrix.environment.name }} environment..."
-          echo "URL: ${{ matrix.environment.url }}"
-          
-          response=$(curl -s -w "\n%{http_code}" -m 30 "${{ matrix.environment.url }}")
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          
-          echo "HTTP Status Code: $http_code"
-          echo "Response Body: $body"
-          
-          if [ "$http_code" -eq 200 ]; then
-            echo "✅ ${{ matrix.environment.name }} is UP and healthy"
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "❌ ${{ matrix.environment.name }} returned HTTP $http_code"
-            echo "status=failure" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-      
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 3
+          max_attempts: 3
+          retry_wait_seconds: 120
+          command: |
+            echo "Checking ${{ matrix.environment.name }}..."
+            
+            response=$(curl -s -w "\n%{http_code}" --retry-connrefused -m 30 "${{ matrix.environment.url }}")
+            http_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | sed '$d')
+            
+            echo "HTTP Status Code: $http_code"
+            echo "Response Body: $body"
+            
+            if [ "$http_code" -eq 200 ]; then
+              echo "✅ UP and healthy"
+            else
+              echo "❌ Returned HTTP $http_code"
+              exit 1
+            fi
+
       - name: Log Health Check Result
         if: always()
         run: |
           echo "Health check completed for ${{ matrix.environment.name }}"
-          echo "Status: ${{ steps.health_check.outputs.status }}"
-          echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
+          echo "Timestamp: $(TZ='America/Mexico_City' date +'%Y-%m-%d %H:%M:%S %Z')"

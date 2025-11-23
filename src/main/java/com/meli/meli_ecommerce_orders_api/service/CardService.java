@@ -1,10 +1,10 @@
-package com.meli.meli_ecommerce_orders_api.cards.service;
+package com.meli.meli_ecommerce_orders_api.service;
 
-import com.meli.meli_ecommerce_orders_api.cards.dto.CardResponse;
-import com.meli.meli_ecommerce_orders_api.cards.dto.CreateCardRequest;
-import com.meli.meli_ecommerce_orders_api.cards.exceptions.MaxCardsException;
-import com.meli.meli_ecommerce_orders_api.cards.model.Card;
-import com.meli.meli_ecommerce_orders_api.cards.repository.CardRepository;
+import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
+import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
+import com.meli.meli_ecommerce_orders_api.exceptions.MaxCardsException;
+import com.meli.meli_ecommerce_orders_api.model.Card;
+import com.meli.meli_ecommerce_orders_api.repository.CardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

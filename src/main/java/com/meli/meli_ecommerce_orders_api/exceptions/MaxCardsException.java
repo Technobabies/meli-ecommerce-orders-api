@@ -1,4 +1,4 @@
-package com.meli.meli_ecommerce_orders_api.cards.exceptions;
+package com.meli.meli_ecommerce_orders_api.exceptions;
 
 /**
  * Custom exception thrown when a user attempts to add more cards
