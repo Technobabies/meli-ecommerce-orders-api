@@ -75,7 +75,7 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
-                // CORRECCIÓN: Ahora accedemos a $.data.id porque usas ApiResponse
+                // NOTE: Now access $.data.id because ApiResponse wraps the payload
                 .andExpect(jsonPath("$.data.id").exists())
                 .andExpect(jsonPath("$.success", is(true)));
 
@@ -84,7 +84,7 @@ class OrderControllerTest {
 
     @Test
     void testCreateOrder_Failure_InvalidInput() throws Exception {
-        CreateOrderRequest invalid = new CreateOrderRequest(); // Falta createdBy e items
+        CreateOrderRequest invalid = new CreateOrderRequest(); // Missing createdBy and items
         mockMvc.perform(post("/api/v1/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
@@ -100,7 +100,7 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                // CORRECCIÓN: La lista está dentro de $.data
+                // NOTE: The list is inside $.data
                 .andExpect(jsonPath("$.data", hasSize(1)))
                 .andExpect(jsonPath("$.data[0].id", is(order.getId().toString())));
     }
@@ -111,7 +111,7 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                // CORRECCIÓN: La lista vacía está en $.data
+                // NOTE: The empty list is returned in $.data
                 .andExpect(jsonPath("$.data", hasSize(0)));
     }
 
@@ -124,14 +124,14 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders/{id}", id))
                 .andExpect(status().isOk())
-                // CORRECCIÓN: Accedemos a $.data.id
+                // NOTE: We access $.data.id
                 .andExpect(jsonPath("$.data.id", is(id.toString())));
     }
 
     @Test
     void testGetOrderById_NotFound() throws Exception {
         UUID id = UUID.randomUUID();
-        // CORRECCIÓN: Usamos EntityNotFoundException que es lo que captura tu GlobalExceptionHandler para devolver 404
+        // NOTE: Use EntityNotFoundException as it is handled by GlobalExceptionHandler to return 404
         when(orderService.getOrderById(id)).thenThrow(new EntityNotFoundException("Not found"));
 
         mockMvc.perform(get("/api/v1/orders/{id}", id))
@@ -143,11 +143,11 @@ class OrderControllerTest {
     void testDeleteOrder_Success() throws Exception {
         UUID id = UUID.randomUUID();
 
-        // El servicio es void
+        // The service method returns void
         Mockito.doAnswer(invocation -> null).when(orderService).softDeleteOrder(id);
 
         mockMvc.perform(delete("/api/v1/orders/{id}", id))
-                // CORRECCIÓN: Tu controlador devuelve 200 OK con ApiResponse, no 204 No Content
+                // NOTE: Controller returns 200 OK with ApiResponse, not 204 No Content
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)));
 
@@ -158,7 +158,7 @@ class OrderControllerTest {
     void testDeleteOrder_NotFound() throws Exception {
         UUID id = UUID.randomUUID();
 
-        // CORRECCIÓN: Usar EntityNotFoundException para disparar el 404
+        // NOTE: Throw EntityNotFoundException to trigger a 404 response
         Mockito.doThrow(new EntityNotFoundException("Not found"))
                 .when(orderService).softDeleteOrder(id);
 
