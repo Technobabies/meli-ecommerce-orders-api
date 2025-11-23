@@ -3,9 +3,9 @@ package com.meli.meli_ecommerce_orders_api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meli.meli_ecommerce_orders_api.dto.CreateOrderRequest;
 import com.meli.meli_ecommerce_orders_api.dto.OrderLineItemRequest;
-import com.meli.meli_ecommerce_orders_api.exceptions.OrderNotFoundException;
 import com.meli.meli_ecommerce_orders_api.model.Order;
 import com.meli.meli_ecommerce_orders_api.service.OrderService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -28,10 +28,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Integration test for the OrderController web layer.
- * Loads only the web layer and mocks the service layer.
- */
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
 
@@ -79,18 +75,21 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists());
+                // NOTE: Now access $.data.id because ApiResponse wraps the payload
+                .andExpect(jsonPath("$.data.id").exists())
+                .andExpect(jsonPath("$.success", is(true)));
 
         verify(orderService, times(1)).createOrder(any(CreateOrderRequest.class));
     }
 
     @Test
     void testCreateOrder_Failure_InvalidInput() throws Exception {
-        CreateOrderRequest invalid = new CreateOrderRequest(); // Missing required fields
+        CreateOrderRequest invalid = new CreateOrderRequest(); // Missing createdBy and items
         mockMvc.perform(post("/api/v1/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success", is(false)));
     }
 
     @Test
@@ -101,8 +100,9 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(order.getId().toString())));
+                // NOTE: The list is inside $.data
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].id", is(order.getId().toString())));
     }
 
     @Test
@@ -111,7 +111,8 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                // NOTE: The empty list is returned in $.data
+                .andExpect(jsonPath("$.data", hasSize(0)));
     }
 
     @Test
@@ -123,28 +124,32 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(id.toString())));
+                // NOTE: We access $.data.id
+                .andExpect(jsonPath("$.data.id", is(id.toString())));
     }
 
     @Test
     void testGetOrderById_NotFound() throws Exception {
         UUID id = UUID.randomUUID();
-        when(orderService.getOrderById(id)).thenThrow(new OrderNotFoundException("Not found"));
+        // NOTE: Use EntityNotFoundException as it is handled by GlobalExceptionHandler to return 404
+        when(orderService.getOrderById(id)).thenThrow(new EntityNotFoundException("Not found"));
 
         mockMvc.perform(get("/api/v1/orders/{id}", id))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success", is(false)));
     }
 
     @Test
     void testDeleteOrder_Success() throws Exception {
         UUID id = UUID.randomUUID();
 
-        // Mock the service call – assume it's a void method
-        Mockito.doAnswer(invocation -> null)
-                .when(orderService).softDeleteOrder(id);
+        // The service method returns void
+        Mockito.doAnswer(invocation -> null).when(orderService).softDeleteOrder(id);
 
         mockMvc.perform(delete("/api/v1/orders/{id}", id))
-                .andExpect(status().isNoContent());
+                // NOTE: Controller returns 200 OK with ApiResponse, not 204 No Content
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)));
 
         verify(orderService, times(1)).softDeleteOrder(id);
     }
@@ -153,11 +158,13 @@ class OrderControllerTest {
     void testDeleteOrder_NotFound() throws Exception {
         UUID id = UUID.randomUUID();
 
-        Mockito.doThrow(new OrderNotFoundException("Not found"))
+        // NOTE: Throw EntityNotFoundException to trigger a 404 response
+        Mockito.doThrow(new EntityNotFoundException("Not found"))
                 .when(orderService).softDeleteOrder(id);
 
         mockMvc.perform(delete("/api/v1/orders/{id}", id))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success", is(false)));
 
         verify(orderService, times(1)).softDeleteOrder(id);
     }
