@@ -1,0 +1,86 @@
+{
+	"info": {
+		"_postman_id": "03189ad0-0391-4244-8e80-6a533289caa6",
+		"name": "MeliECommerce",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23812832"
+	},
+	"item": [
+		{
+			"name": "CreateOrder",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"createdBy\": \"d290f1ee-6c54-4b01-90e6-d701748f0851\",\r\n    \"items\": [\r\n        {\r\n            \"productId\": \"a1b2c3d4-e5f6-1234-abcd-556677889900\",\r\n            \"productName\": \"Teclado Mecánico Gamer RGB\",\r\n            \"quantity\": 1,\r\n            \"pricePerUnit\": 1899.99\r\n        },\r\n        {\r\n            \"productId\": \"f1e2d3c4-b5a6-4321-fedc-112233445566\",\r\n            \"productName\": \"Mouse Inalámbrico Ergonómico\",\r\n            \"quantity\": 1,\r\n            \"pricePerUnit\": 850.50\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetOrders",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteOrders",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/orders/adc6a549-2332-405e-a583-7f9c1617b476",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"adc6a549-2332-405e-a583-7f9c1617b476"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
