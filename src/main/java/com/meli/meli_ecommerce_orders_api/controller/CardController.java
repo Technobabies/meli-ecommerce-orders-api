@@ -81,15 +81,19 @@ public class CardController {
      * @param request the validated request body containing the card fields to update
      * @return a {@link ResponseEntity} containing an {@link ApiResponse} with the updated card data
      */
+    @Operation(
+            summary = "Update a card",
+            description = "Updates the cardholder name and expiration date of an existing card."
+    )
+    @ApiResponse(responseCode = "200", description = "Card updated successfully")
+    @ApiResponse(responseCode = "404", description = "Card not found")
     @PutMapping("/{cardId}")
     public ResponseEntity<ApiResponse<CardResponse>> updateCard(
             @PathVariable UUID cardId,
             @Valid @RequestBody UpdateCardRequest request) {
 
         CardResponse updatedCard = cardService.updateCard(cardId, request);
-
-        return ResponseEntity.ok(
-                ApiResponse.success("Card updated successfully", updatedCard)
-        );
+        return ResponseEntity.ok(ApiResponse.success("Card updated successfully", updatedCard));
     }
+
 }
