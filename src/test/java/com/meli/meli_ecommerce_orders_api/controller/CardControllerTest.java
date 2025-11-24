@@ -12,7 +12,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,4 +37,24 @@ class CardControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void updateCard_shouldReturn200() throws Exception {
+        UUID cardId = UUID.randomUUID();
+
+        CardResponse mockResponse = new CardResponse();
+        when(cardService.updateCard(eq(cardId), any())).thenReturn(mockResponse);
+
+        mockMvc.perform(put("/api/v1/cards/" + cardId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                          "cardholderName": "Updated Name",
+                          "expirationDate": "2030-01-01"
+                        }
+                    """))
+                .andExpect(status().isOk());
+    }
+
+
 }

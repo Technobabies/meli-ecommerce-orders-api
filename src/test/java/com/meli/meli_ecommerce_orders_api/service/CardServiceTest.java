@@ -2,6 +2,7 @@ package com.meli.meli_ecommerce_orders_api.service;
 
 import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
 import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
+import com.meli.meli_ecommerce_orders_api.dto.UpdateCardRequest;
 import com.meli.meli_ecommerce_orders_api.exceptions.MaxCardsException;
 import com.meli.meli_ecommerce_orders_api.model.Card;
 import com.meli.meli_ecommerce_orders_api.repository.CardRepository;
@@ -105,4 +106,37 @@ class CardServiceTest {
 
         assertNotNull(card.getDeletedAt());
     }
+
+    @Test
+    void updateCard_shouldUpdateCardDetails() {
+        UUID cardId = UUID.randomUUID();
+        Card card = new Card(UUID.randomUUID(), "Old Name", "1111222233334444", LocalDate.now().plusYears(1));
+        card.setId(cardId);
+
+        UpdateCardRequest req = new UpdateCardRequest();
+        req.setCardholderName("New Holder");
+        req.setExpirationDate(LocalDate.now().plusYears(2));
+
+        when(cardRepository.findById(cardId)).thenReturn(Optional.of(card));
+        when(cardRepository.save(any(Card.class))).thenReturn(card);
+
+        CardResponse response = cardService.updateCard(cardId, req);
+
+        assertEquals("New Holder", response.getCardholderName());
+        assertEquals(LocalDate.now().plusYears(2), response.getExpirationDate());
+    }
+
+    @Test
+    void updateCard_shouldThrowEntityNotFound_whenCardDoesNotExist() {
+        UUID cardId = UUID.randomUUID();
+        when(cardRepository.findById(cardId)).thenReturn(Optional.empty());
+
+        UpdateCardRequest req = new UpdateCardRequest();
+        req.setCardholderName("Name");
+        req.setExpirationDate(LocalDate.now().plusYears(1));
+
+        assertThrows(EntityNotFoundException.class, () -> cardService.updateCard(cardId, req));
+    }
+
+
 }
