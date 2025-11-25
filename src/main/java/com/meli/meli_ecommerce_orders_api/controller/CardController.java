@@ -2,6 +2,7 @@ package com.meli.meli_ecommerce_orders_api.controller;
 
 import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
 import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
+import com.meli.meli_ecommerce_orders_api.dto.UpdateCardRequest;
 import com.meli.meli_ecommerce_orders_api.service.CardService;
 import com.meli.meli_ecommerce_orders_api.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,4 +87,35 @@ public class CardController {
         cardService.deleteCard(cardId);
         return ResponseEntity.ok(ApiResponse.success("Card deleted successfully", null));
     }
+
+    /**
+     * Updates an existing card identified by its ID using the data provided in the request body.
+     *
+     * <p>This endpoint receives a {@link UpdateCardRequest} object containing the
+     * fields to update, validates it, and delegates the update operation to the
+     * card service. If the update is successful, it returns an {@link ApiResponse}
+     * wrapping the updated card information.</p>
+     *
+     * @param cardId the UUID of the card to update
+     * @param request the validated request body containing the card fields to update
+     * @return a {@link ResponseEntity} containing an {@link ApiResponse} with the updated card data
+     */
+    @Operation(
+            summary = "Update a card",
+            description = "Updates the cardholder name and expiration date of an existing card."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Card updated successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Card not found")
+    })
+    @PutMapping("/{cardId}")
+    public ResponseEntity<ApiResponse<CardResponse>> updateCard(
+            @PathVariable UUID cardId,
+            @Valid @RequestBody UpdateCardRequest request) {
+
+        CardResponse updatedCard = cardService.updateCard(cardId, request);
+        return ResponseEntity.ok(ApiResponse.success("Card updated successfully", updatedCard));
+    }
+
+
 }

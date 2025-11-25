@@ -2,6 +2,7 @@ package com.meli.meli_ecommerce_orders_api.service;
 
 import com.meli.meli_ecommerce_orders_api.dto.CardResponse;
 import com.meli.meli_ecommerce_orders_api.dto.CreateCardRequest;
+import com.meli.meli_ecommerce_orders_api.dto.UpdateCardRequest;
 import com.meli.meli_ecommerce_orders_api.exceptions.MaxCardsException;
 import com.meli.meli_ecommerce_orders_api.model.Card;
 import com.meli.meli_ecommerce_orders_api.repository.CardRepository;
@@ -98,4 +99,33 @@ public class CardService {
         card.setDeletedAt(LocalDateTime.now());
         cardRepository.save(card);
     }
+
+    /**
+     * Updates an existing card with the provided information.
+     *
+     * <p>This method retrieves a card by its ID, ensuring that it has not been
+     * soft-deleted (i.e., {@code deletedAt} is {@code null}). If the card exists,
+     * it updates its cardholder name and expiration date using the values provided
+     * in the {@link UpdateCardRequest}. The updated entity is then saved to the
+     * repository and returned as a {@link CardResponse}.</p>
+     *
+     * @param cardId the unique identifier of the card to update
+     * @param req the request object containing the new cardholder name and expiration date
+     * @return a {@link CardResponse} representing the updated card
+     * @throws EntityNotFoundException if no active card is found with the given ID
+     */
+    @Transactional
+    public CardResponse updateCard(UUID cardId, UpdateCardRequest req) {
+        Card card = cardRepository.findById(cardId)
+                .filter(c -> c.getDeletedAt() == null)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + cardId));
+
+        card.setCardholderName(req.getCardholderName());
+        card.setExpirationDate(req.getExpirationDate());
+
+        Card updatedCard = cardRepository.save(card);
+        return CardResponse.fromEntity(updatedCard);
+    }
+
+
 }
