@@ -64,5 +64,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.failure("An unexpected error occurred: " + ex.getMessage()));
     }
+
+    @ExceptionHandler(CardExpiredException.class)
+    public ResponseEntity<ApiResponse<String>> handleCardExpired(CardExpiredException ex) {
+        ApiResponse<String> response = new ApiResponse<>(false, ex.getMessage(), null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 }
 
