@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,18 +24,18 @@ public class CardController {
     // Injected service responsible for card-related business logic
     private final CardService cardService;
 
-    @Autowired
     public CardController(CardService cardService) {
         this.cardService = cardService;
     }
 
     /**
      * Retrieves all cards belonging to a specific user.
+     * Supports both old and new route formats for backward compatibility.
      *
      * @param userId The UUID of the user whose cards should be fetched.
      * @return A ResponseEntity containing an ApiResponse with a list of CardResponse objects.
      */
-    @GetMapping("/{userId}")
+    @GetMapping(value = {"/user/{userId}", "/{userId}"})
     @Operation(summary = "List of cards by user", description = "Obtain the list of cards associated to a user by its id.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "List of card retrieve successfully"),
@@ -48,13 +47,31 @@ public class CardController {
     }
 
     /**
+     * Retrieves a single card by its ID.
+     *
+     * @param id The UUID of the card to retrieve.
+     * @return A ResponseEntity containing an ApiResponse with the CardResponse object.
+     */
+    @GetMapping("/card/{id}")
+    @Operation(summary = "Get a single card", description = "Retrieve a specific card by its unique ID.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Card retrieved successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Card not found")
+    })
+    public ResponseEntity<ApiResponse<CardResponse>> getCardById(@PathVariable UUID id) {
+        CardResponse card = cardService.getCardById(id);
+        return ResponseEntity.ok(ApiResponse.success("Card fetched successfully", card));
+    }
+
+    /**
      * Creates a new card for a specific user.
+     * Supports both old and new route formats for backward compatibility.
      *
      * @param userId The UUID of the user to whom the new card will belong.
      * @param request A validated CreateCardRequest containing card details.
      * @return A ResponseEntity containing an ApiResponse with the created CardResponse.
      */
-    @PostMapping("/{userId}")
+    @PostMapping(value = {"/user/{userId}", "/{userId}"})
     @Operation(summary = "Create a card for a user", description = "Create a cards to be associated to a user by its id.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Card created successfully"),
@@ -69,6 +86,24 @@ public class CardController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Card created successfully", createdCard));
+    }
+
+    /**
+     * Sets a card as the default payment method for its owner.
+     * Only one card per user can be marked as default at a time.
+     *
+     * @param id The UUID of the card to set as default.
+     * @return A ResponseEntity containing an ApiResponse with the updated CardResponse.
+     */
+    @PutMapping("/{id}/set-default")
+    @Operation(summary = "Set card as default", description = "Mark a specific card as the default payment method for the user.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Card set as default successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Card not found")
+    })
+    public ResponseEntity<ApiResponse<CardResponse>> setDefaultCard(@PathVariable UUID id) {
+        CardResponse updatedCard = cardService.setDefaultCard(id);
+        return ResponseEntity.ok(ApiResponse.success("Card set as default successfully", updatedCard));
     }
 
     /**

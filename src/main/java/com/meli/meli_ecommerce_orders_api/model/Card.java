@@ -61,6 +61,13 @@ public class Card {
     private LocalDateTime createdAt;
 
     /**
+     * Indicates if this card is set as the default payment method for the user.
+     * Only one card per user should be marked as default at a time.
+     */
+    @Column(name = "is_default", nullable = false)
+    private Boolean isDefault;
+
+    /**
      * Soft delete field.
      * If not null, it indicates when the card was logically deleted.
      * The record remains in the database for auditing or recovery.
@@ -76,6 +83,7 @@ public class Card {
     /**
      * Convenience constructor for creating a card entity.
      * Sets the creation timestamp automatically.
+     * New cards are not set as default by default (false).
      *
      * @param userId          Identifier of the user who owns the card.
      * @param cardholderName  Name on the card.
@@ -88,6 +96,7 @@ public class Card {
         this.cardNumber = cardNumber;
         this.expirationDate = expirationDate;
         this.createdAt = LocalDateTime.now();
+        this.isDefault = false;
     }
 
     // Getters and setters
@@ -101,6 +110,8 @@ public class Card {
     public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
     public LocalDate getExpirationDate() { return expirationDate; }
     public void setExpirationDate(LocalDate expirationDate) { this.expirationDate = expirationDate; }
+    public Boolean getIsDefault() { return isDefault; }
+    public void setIsDefault(Boolean isDefault) { this.isDefault = isDefault; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getDeletedAt() { return deletedAt; }

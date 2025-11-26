@@ -18,7 +18,7 @@ class CardsExceptionHandlerTest {
     }
 
     @Test
-    void handleMaxCards_ShouldReturnConflictStatusAndErrorMessage() {
+    void handleMaxCards_ShouldReturnBadRequestStatusAndErrorMessage() {
         // Arrange
         String errorMessage = "Maximum number of cards exceeded";
         MaxCardsException exception = new MaxCardsException(errorMessage);
@@ -28,7 +28,24 @@ class CardsExceptionHandlerTest {
 
         // Assert
         assertNotNull(response, "Response should not be null");
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode(), "Status code should be 409 CONFLICT");
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Status code should be 400 BAD_REQUEST");
+        assertNotNull(response.getBody(), "Response body should not be null");
+        assertFalse(response.getBody().isSuccess(), "ApiResponse should indicate failure");
+        assertEquals(errorMessage, response.getBody().getMessage(), "Error message should match the exception message");
+    }
+
+    @Test
+    void handleIllegalArgument_ShouldReturnBadRequestStatusAndErrorMessage() {
+        // Arrange
+        String errorMessage = "Card number already exists for this user.";
+        IllegalArgumentException exception = new IllegalArgumentException(errorMessage);
+
+        // Act
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleIllegalArgument(exception);
+
+        // Assert
+        assertNotNull(response, "Response should not be null");
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), "Status code should be 400 BAD_REQUEST");
         assertNotNull(response.getBody(), "Response body should not be null");
         assertFalse(response.getBody().isSuccess(), "ApiResponse should indicate failure");
         assertEquals(errorMessage, response.getBody().getMessage(), "Error message should match the exception message");
