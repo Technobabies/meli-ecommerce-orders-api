@@ -36,6 +36,8 @@ public class PaymentService {
 
         // --- VALIDACIÓN: tarjeta expirada ---
         if (card.getExpirationDate().isBefore(LocalDate.now())) {
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
             throw new CardExpiredException();
         }
 
@@ -47,6 +49,10 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.APPROVED);
 
         paymentRepository.save(payment);
+
+        // Change to PROCESSING when the payment is done
+        order.setStatus(OrderStatus.PROCESSING);
+        orderRepository.save(order);
 
         return new PaymentResponse(
                 payment.getId(),
