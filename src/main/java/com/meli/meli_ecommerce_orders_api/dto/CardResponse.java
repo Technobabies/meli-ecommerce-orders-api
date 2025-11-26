@@ -22,6 +22,9 @@ public class CardResponse {
     // Expiration date of the card
     private LocalDate expirationDate;
 
+    // Indicates if this is the default payment card
+    private Boolean isDefault;
+
     /**
      * Converts a Card entity into a CardResponse DTO.
      * The method also masks the card number to avoid exposing sensitive information.
@@ -41,6 +44,7 @@ public class CardResponse {
         response.id = card.getId();
         response.cardholderName = card.getCardholderName();
         response.expirationDate = card.getExpirationDate();
+        response.isDefault = card.getIsDefault();
 
         // Masking logic for card number
         String fullNum = card.getCardNumber();
@@ -63,4 +67,5 @@ public class CardResponse {
     public String getCardholderName() { return cardholderName; }
     public String getMaskedCardNumber() { return maskedCardNumber; }
     public LocalDate getExpirationDate() { return expirationDate; }
+    public Boolean getIsDefault() { return isDefault; }
 }
