@@ -24,7 +24,7 @@ public class Payment {
     @Column(nullable = false, name = "card_id")
     private UUID cardId;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2, name = "total_price")
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
@@ -32,7 +32,7 @@ public class Payment {
     private PaymentStatus status;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     // ---------------------
