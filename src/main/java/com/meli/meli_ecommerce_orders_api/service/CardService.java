@@ -81,6 +81,54 @@ public class CardService {
     }
 
     /**
+     * Retrieves a single card by its ID.
+     * Only returns active (non-deleted) cards.
+     *
+     * @param cardId the unique identifier of the card to retrieve
+     * @return a CardResponse DTO representing the card
+     * @throws EntityNotFoundException if the card doesn't exist or has been deleted
+     */
+    public CardResponse getCardById(UUID cardId) {
+        Card card = cardRepository.findById(cardId)
+                .filter(c -> c.getDeletedAt() == null)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + cardId));
+        
+        return CardResponse.fromEntity(card);
+    }
+
+    /**
+     * Sets a specific card as the default payment method for a user.
+     * Automatically removes the default status from any other cards belonging to the same user.
+     * Only one card per user can be marked as default at a time.
+     *
+     * @param cardId the unique identifier of the card to set as default
+     * @return a CardResponse DTO representing the updated card
+     * @throws EntityNotFoundException if the card doesn't exist or has been deleted
+     */
+    @Transactional
+    public CardResponse setDefaultCard(UUID cardId) {
+        // Find the card and ensure it exists and hasn't been deleted
+        Card card = cardRepository.findById(cardId)
+                .filter(c -> c.getDeletedAt() == null)
+                .orElseThrow(() -> new EntityNotFoundException("Card not found with ID: " + cardId));
+
+        // Remove default status from all other cards belonging to this user
+        List<Card> userCards = cardRepository.findByUserIdAndDeletedAtIsNull(card.getUserId());
+        for (Card userCard : userCards) {
+            if (!userCard.getId().equals(cardId) && userCard.getIsDefault()) {
+                userCard.setIsDefault(false);
+                cardRepository.save(userCard);
+            }
+        }
+
+        // Set the selected card as default
+        card.setIsDefault(true);
+        Card updatedCard = cardRepository.save(card);
+
+        return CardResponse.fromEntity(updatedCard);
+    }
+
+    /**
      * Performs a soft delete on a card by setting its deletedAt timestamp.
      * Only cards that haven't been previously deleted can be deleted.
      * This operation is idempotent - attempting to delete an already deleted card will throw an exception.
