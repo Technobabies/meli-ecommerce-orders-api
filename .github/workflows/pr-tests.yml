@@ -39,9 +39,10 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          echo "🧪 Running unit tests..."
+          echo "🧪 Running unit tests only (integration tests excluded)..."
           # Exclude integration tests by excluding test classes with "Integration" in the name
-          mvn test -Dtest='!**/*Integration*' --batch-mode --no-transfer-progress
+          # Also exclude any test in integration package
+          mvn test -Dtest='!**/*Integration*,!**/integration/**' --batch-mode --no-transfer-progress
         continue-on-error: false
 
       - name: Generate Test Report
@@ -58,12 +59,13 @@ jobs:
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
+        continue-on-error: true
         with:
           files: |
             target/surefire-reports/*.xml
           check_name: Unit Test Results
           comment_title: 🧪 Unit Test Results
-          comment_mode: always
+          comment_mode: off
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -90,17 +92,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note:** Integration tests are excluded from PR checks" >> $GITHUB_STEP_SUMMARY
           echo "**Reason:** Limited database connection pool for staging environment" >> $GITHUB_STEP_SUMMARY
-
-      - name: Comment PR on Failure
-        if: failure()
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ **Unit tests failed!** Please review the test results and fix the failing tests before merging.'
-            })
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Integration tests:** Run locally with \`mvn test -Dtest='CardIntegrationTest'\`" >> $GITHUB_STEP_SUMMARY
 
