@@ -21,6 +21,32 @@ This new service provides a modern, reliable, and scalable replacement. It imple
 Together, these establish a solid foundation for MELI's future e-commerce operations.
 
 ---
+## 🧾 Payment Module
+
+This module introduces the full **Payment Processing System** inside the MELI Order Management Service. Payments are linked to existing Orders and Cards, validating the user’s card and automatically calculating the total price from the order.
+
+### 🔐 Features
+
+- New endpoint:  
+  **POST `/api/v1/payments/{userId}`**
+- Validates all required fields:
+    - Order existence
+    - Card existence
+    - Correct UUID formats
+    - Card expiration date
+- Automatically computes `totalPrice` based on the related Order
+- Assigns `APPROVED` status for successful payments
+- Returns standardized `PaymentResponse` structures for consistency
+
+### 📂 Included Files
+
+- `PaymentController.java`
+- `PaymentService.java`
+- `CreatePaymentRequest.java`
+- `PaymentResponse.java`
+
+Dana implemented the backend logic and integration, while **Daneea ensured stability and correctness through a complete automated test suite and adjustments to validation and JSON response formatting.**
+
 
 ## 🚀 Key Features
 
@@ -448,6 +474,50 @@ EXECUTE FUNCTION public.fn_log_order_changes();
 This means the system automatically knows **which user** made the change based on who created or modified the record in your API.
 
 ---
+## 🧪 Payment Module – Automated Testing
+
+**Implemented by:** *Daneea Gabriela Román López*
+
+A dedicated JUnit and MockMvc testing suite was created to guarantee the reliability of the Payment module and validate its behavior across all scenarios.
+
+### ✔️ Controller Tests
+
+**File:** `PaymentControllerTest.java`
+
+Test coverage includes:
+- Successful payment creation → **201 Created**
+- Missing `orderId` → **400 Bad Request**
+- Missing `cardId` → **400 Bad Request**
+- Validation of request body format
+- JSON response structure validation
+- Ensuring `totalPrice` is properly serialized as a string
+- Full mocking of `PaymentService` to isolate the controller layer
+
+### ✔️ Service Tests
+
+**File:** `PaymentServiceTest.java`
+
+Validates core behavior such as:
+- Creating a payment with correct total price
+- Repository interactions (`OrderRepository`, `CardRepository`, `PaymentRepository`)
+- Error scenarios:
+    - Order not found
+    - Card not found
+    - Expired card
+- Ensuring all fields in the `Payment` entity are correctly populated before saving
+
+### ✔️ Repository Layer
+
+Payment persistence is verified using the H2 in-memory database under the `test` profile, ensuring correct schema mapping and integration with other domain entities.
+
+### 📊 Test Execution Summary
+
+All tests passed successfully:
+
+```text
+Tests run: 39, Failures: 0, Errors: 0, Skipped: 0  
+BUILD SUCCESS
+
 
 ## 🧪 JaCoCo Test Coverage
 
@@ -505,4 +575,8 @@ target/site/jacoco/index.html
 
 ### ER Diagram
 <img width="919" height="740" alt="Screenshot 2025-11-13 103142" src="https://github.com/user-attachments/assets/4fe62624-cde2-473e-ad9b-a2295a948540" />
+
+
+---
+
 
